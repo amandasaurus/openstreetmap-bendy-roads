@@ -4,3 +4,4 @@ output*.tsv
 output*.tsv.bz2
 *.osm.bz2
 *.osm.pbf
+*.osm
