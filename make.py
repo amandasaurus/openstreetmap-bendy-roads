@@ -43,7 +43,7 @@ print "Analyzed & optimized"
         #create index planet_osm_line_geog on planet_osm_line using gist (geog);
 
 for lat, lon in itertools.product(frange(minlat, maxlat, increment), frange(minlon, maxlon, increment)):
-    #this_minlat, this_minlon = lat, lon
+    this_minlat, this_minlon = lat, lon
     this_maxlat, this_maxlon = lat + increment, lon + increment
 
     bbox = "ST_Transform(ST_MakeEnvelope({0}, {1}, {2}, {3}, 4326), 900913)".format(this_minlat, this_minlon, this_maxlat, this_maxlon)
