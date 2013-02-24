@@ -1,6 +1,11 @@
 from __future__ import division
 
-import sys, subprocess, itertools, os, os.path
+import sys, subprocess, itertools, os, os.path, shutil
+
+import psycopg2
+
+conn = psycopg2.connect("dbname=gis")
+cur = conn.cursor()
 
 increment = 0.2
 
@@ -16,19 +21,20 @@ minlat, maxlat = -10.0, -5.0
 minlon, maxlon = 51.0, 56.0
 
 subprocess.call(['osm2pgsql', '-S', 'osm.style', 'ireland-and-northern-ireland.osm.pbf'])
-subprocess.call(['psql', '-d', 'gis', '-c', """
+cur.execute(
+        """
         delete from planet_osm_line where
             highway not in ('trunk', 'primary', 'secondary', 'tertiary', 'unclassified', 'road', 'residential', 'primary_link', 'secondary_link', 'trunk_link', 'motorway', 'motorway_link') or highway IS NULL;
-        """])
+        """)
 print "Removed non-highways"
-subprocess.call(['psql', '-d', 'gis', '-c', """
+cur.execute("""
         alter table planet_osm_line add column geog geography;
         update planet_osm_line set geog = geography(st_transform(way, 4326));
-        """])
+        """)
 print "Added a geography column"
-subprocess.call(['psql', '-d', 'gis', '-c', """
-        vacuum analyse planet_osm_line;
-        """])
+cur.execute("""
+        analyse planet_osm_line;
+        """)
 print "Analyzed & optimized"
         #create index planet_osm_line_geog on planet_osm_line using gist (geog);
 
