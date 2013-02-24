@@ -53,7 +53,7 @@ for lat, lon in itertools.product(frange(minlat, maxlat, increment), frange(minl
         "psql", "-d", "gis", "-t", "-A", "-F", "	",
         "-o", filename,
         "-c",
-        "select highway, case when straightline=0 then 0.0 else length::float/straightline::float end as ratio, length, straightline from ( select osm_id, highway, st_length(geog) as length, st_distance(geography(st_transform(st_startpoint(way), 4326)), geography(st_transform(st_endpoint(way), 4326))) as straightline from planet_osm_line where way && {bbox} ) as inter;".format(bbox=bbox),
+        "select highway, case when straightline=0 then 0.0 else length::float/straightline::float end as ratio, length from ( select osm_id, highway, st_length(geog) as length, st_distance(geography(st_transform(st_startpoint(way), 4326)), geography(st_transform(st_endpoint(way), 4326))) as straightline from planet_osm_line where way && {bbox} ) as inter;".format(bbox=bbox),
         ])
 
     if os.path.getsize(filename) == 0:
