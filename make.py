@@ -47,7 +47,6 @@ for lat, lon in itertools.product(frange(minlat, maxlat, increment), frange(minl
     this_maxlat, this_maxlon = lat + increment, lon + increment
 
     bbox = "ST_Transform(ST_MakeEnvelope({0}, {1}, {2}, {3}, 4326), 900913)".format(this_minlat, this_minlon, this_maxlat, this_maxlon)
-    #bbox = "st_transform(st_setsrid(St_GeomFromText('POLYGON(({minlon} {minlat}, {maxlon} {minlat}, {minlon} 53.131, -9.833 53.131, {minlon} {minlat}))'), 4326), 900913)".format(minlat=this_minlat, minlon=this_minlon, maxlat=this_maxlat)
 
     filename= "output.minlat{0}.maxlat{1}.minlon{2}.maxlon{3}.tsv".format(this_minlat, this_maxlat, this_minlon, this_maxlon)
     subprocess.call([
@@ -61,8 +60,3 @@ for lat, lon in itertools.product(frange(minlat, maxlat, increment), frange(minl
         os.remove(filename)
     else:
         print "Saved to ", filename
-
-# delete from planet_osm_line where highway not in ('trunk', 'primary', 'secondary', 'tertiary', 'unclassified', 'road', 'residential', 'primary_link', 'secondary_link', 'trunk_link', 'motorway', 'motorway_link') or highway IS NULL;
-# alter table planet_osm_line add column geog geography;
-# update planet_osm_line set geog = geography(st_transform(way, 4326));
-# select osm_id, case when straightline=0 then 0.0 else length::float/straightline::float end as ratio, length, straightline from ( select osm_id, highway, st_length(geog) as length, st_distance(geography(st_transform(st_startpoint(way), 4326)), geography(st_transform(st_endpoint(way), 4326))) as straightline from planet_osm_line ) as inter
