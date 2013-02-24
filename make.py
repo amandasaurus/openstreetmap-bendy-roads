@@ -20,6 +20,10 @@ def frange(start, stop, step=None):
 minlat, maxlat = -10.0, -5.0
 minlon, maxlon = 51.0, 56.0
 
+if os.path.isdir("output"):
+    shutil.rmtree("output")
+os.mkdir("./output")
+
 subprocess.call(['osm2pgsql', '-S', 'osm.style', 'ireland-and-northern-ireland.osm.pbf'])
 cur.execute(
         """
