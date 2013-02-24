@@ -43,6 +43,14 @@ def average(rows):
     # highway, ratio, length
     return sum(ratio*length for highway, ratio, length in rows)/sum(length for highway, ratio, length in rows)
 
+def km_above_X(rows, x):
+    # highway, ratio, length
+    return sum(length for highway, ratio, length in rows if ratio >= x)
+
+def percent_above_X(rows, x):
+    # highway, ratio, length
+    return sum(length for highway, ratio, length in rows if ratio >= x)/sum(length for highway, ratio, length in rows)
+
 
 def generate_data(minlat, maxlat, minlon, maxlon, increment):
     geojson = {'type': 'FeatureCollection', 'features': [] }
@@ -61,7 +69,11 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
         if len(rows) > 0:
             geojson_feature = {
                 'properties': {
-                    'average': average(rows)
+                    'average': average(rows),
+                    'km_above_1_2': km_above_X(rows, 1.2),
+                    'km_above_1_5': km_above_X(rows, 1.5),
+                    'percent_above_1_2': percent_above_X(rows, 1.2),
+                    'percent_above_1_5': percent_above_X(rows, 1.5),
                 },
                 'type': 'Feature',
                 "geometry": {
