@@ -48,7 +48,7 @@ for lat, lon in itertools.product(frange(minlat, maxlat, increment), frange(minl
 
     bbox = "ST_Transform(ST_MakeEnvelope({0}, {1}, {2}, {3}, 4326), 900913)".format(this_minlat, this_minlon, this_maxlat, this_maxlon)
 
-    filename= "output.minlat{0}.maxlat{1}.minlon{2}.maxlon{3}.tsv".format(this_minlat, this_maxlat, this_minlon, this_maxlon)
+    filename= "./output/output.minlat{0}.maxlat{1}.minlon{2}.maxlon{3}.tsv".format(this_minlat, this_maxlat, this_minlon, this_maxlon)
     subprocess.call([
         "psql", "-d", "gis", "-t", "-A", "-F", "	",
         "-o", filename,
