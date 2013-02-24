@@ -79,11 +79,11 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [[
-                        [this_minlon, this_minlat],
-                        [this_maxlon, this_minlat],
-                        [this_maxlon, this_maxlat],
-                        [this_minlon, this_maxlat],
-                        [this_minlon, this_minlat],
+                        [this_minlat, this_minlon],
+                        [this_maxlat, this_minlon],
+                        [this_maxlat, this_maxlon],
+                        [this_minlat, this_maxlon],
+                        [this_minlat, this_minlon],
                     ]]
                 }
             }
