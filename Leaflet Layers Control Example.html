@@ -22,31 +22,11 @@
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-		var baseballIcon = L.icon({
-			iconUrl: 'baseball-marker.png',
-			iconSize: [32, 37],
-			iconAnchor: [16, 37],
-			popupAnchor: [0, -28]
-		});
-
-		function onEachFeature(feature, layer) {
-			var popupContent = "<p>I started out as a GeoJSON " +
-					feature.geometry.type + ", but now I'm a Leaflet vector!</p>";
-
-			if (feature.properties && feature.properties.popupContent) {
-				popupContent += feature.properties.popupContent;
-			}
-
-			layer.bindPopup(popupContent);
-		}
-
 		L.geoJson([bicycleRental, campus], {
 
 			style: function (feature) {
 				return feature.properties && feature.properties.style;
 			},
-
-			onEachFeature: onEachFeature,
 
 			pointToLayer: function (feature, latlng) {
 				return L.circleMarker(latlng, {
