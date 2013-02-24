@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>Leaflet Layers Control Example</title>
+	<title>Bendy roads</title>
 	<meta charset="utf-8" />
 
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,7 +22,21 @@
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         }).addTo(map);
 
-		L.geoJson(boxes).addTo(map);
+		L.geoJson(boxes, {
+            style: function (feature) {
+                var value = feature.properties.percent_above_1_2;
+                var min = 0.0;
+                var max = 1.0;
+                if ( value > max ) {
+                    return { color: '#f00', weight: 0.5, fillOpacity: 0.5 };
+                } else if ( value < min ) {
+                    return { color: '#000', weight: 0.5, fillOpacity: 0.5 };
+                } else {
+                    var hexcode = (Math.floor(((value - min)/(max-min))*256)).toString(16);
+                    return { color: '#'+hexcode+'0000', weight: 0.5, fillOpacity: 0.5 };
+                }
+            }
+        }).addTo(map);
 
 	</script>
 </body>
