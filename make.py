@@ -229,4 +229,3 @@ if __name__ == '__main__':
     minlon, maxlon = bottom, top
     #import_data(filename="../planet-130206-highways.osm.pbf")
     generate_data(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment)
-    #extract_way_details(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment)
