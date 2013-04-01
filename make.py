@@ -80,7 +80,7 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
     geojson = {'type': 'FeatureCollection', 'features': [] }
 
     # For each box these are the properties we want to store for it
-    propertie_funcs = {
+    property_funcs = {
         # weighted (by road distance) average of the ratio
         'average': lambda rows: average(rows),
 
@@ -130,7 +130,7 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
 
                 rows = cur.fetchall()
                 if len(rows) > 0:
-                    properties = {k: v(rows) for k, v in propertie_funcs.items()}
+                    properties = {k: v(rows) for k, v in property_funcs.items()}
                     geojson_feature = {
                         'properties': properties,
                         'type': 'Feature',
@@ -160,7 +160,7 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
 
         print "\nCalculating statistics"
         stats = {}
-        for property_name in properties.keys():
+        for property_name in property_funcs.keys():
             values = [x[property_name] for x in all_property_results]
             values.sort()
             mean = sum(values) / len(values)
