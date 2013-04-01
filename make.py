@@ -85,10 +85,10 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
         'average': lambda rows: average(rows),
 
         # How many metres of the roads have a ratio ≥ 1.2
-        'm_above_1_2': lambda rows: km_above_X(rows, 1.2),
+        'm_above_1_2': lambda rows: m_above_X(rows, 1.2),
 
         # How many metres of the roads have a ratio ≥ 1.5
-        'm_above_1_5': lambda rows: km_above_X(rows, 1.5),
+        'm_above_1_5': lambda rows: m_above_X(rows, 1.5),
 
         # What percentage of the road metres have a ratio ≥ 1.2
         'percent_above_1_2': lambda rows: percent_above_X(rows, 1.2),
