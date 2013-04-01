@@ -1,3 +1,4 @@
+# encoding: utf-8
 from __future__ import division
 
 import sys, subprocess, itertools, os, os.path, shutil, json, math
