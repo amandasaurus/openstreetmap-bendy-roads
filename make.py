@@ -222,7 +222,7 @@ def extract_way_details(minlat, maxlat, minlon, maxlon, increment):
 
 
 if __name__ == '__main__':
-    increment = 0.25
+    increment = 1.0
     top, bottom = 89, -89
     left, right = -179, 179
     minlat, maxlat = left, right
