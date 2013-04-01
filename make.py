@@ -163,6 +163,8 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
         for property_name in property_funcs.keys():
             values = [x[property_name] for x in all_property_results]
             values.sort()
+            if len(values) == 0:
+                continue
             mean = sum(values) / len(values)
             stats[property_name] = {
                 'avg': mean,
