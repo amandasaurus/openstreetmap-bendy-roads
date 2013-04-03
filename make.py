@@ -76,7 +76,7 @@ def stddev(rows):
     )
 
 
-def generate_data(minlat, maxlat, minlon, maxlon, increment):
+def generate_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="output."):
     # initialize the geojson object
     geojson = {'type': 'FeatureCollection', 'features': [] }
 
@@ -151,9 +151,9 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
 
     finally:
 
-        print "\nSaving to output.geojson.js"
+        print "\nSaving to %s.geojson.js" % output_prefix
 
-        with open("output.geojson.js", 'w') as output_fp:
+        with open(output_prefix+"geojson.js", 'w') as output_fp:
 
             output_fp.write('var boxes = ')
             json.dump(geojson, output_fp, indent=1)
@@ -178,7 +178,7 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
                 'p75': values[int(len(values)*0.75)],
                 'stddev': math.sqrt(sum((i - mean) ** 2 for i in values) / len(values)),
             }
-        with open("output.stats.geojson.js", 'w') as output_fp:
+        with open(output_prefix+"stats.geojson.js", 'w') as output_fp:
             json.dump(stats, output_fp, indent=1)
 
 
@@ -229,6 +229,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--left', default=-179, type=float)
     parser.add_argument('-b', '--bottom', default=-89, type=float)
     parser.add_argument('-r', '--right', default=179, type=float)
+    parser.add_argument('-o', '--output', default="output.", type=str)
 
     args = parser.parse_args()
 
@@ -238,3 +239,4 @@ if __name__ == '__main__':
     minlat, maxlat = left, right
     minlon, maxlon = bottom, top
     #import_data(filename="../planet-130206-highways.osm.pbf")
+    generate_data(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment, output_prefix=args.output)
