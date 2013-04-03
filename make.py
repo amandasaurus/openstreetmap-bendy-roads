@@ -4,6 +4,7 @@ from __future__ import division
 import sys, subprocess, itertools, os, os.path, shutil, json, math
 
 import psycopg2
+import argparse
 
 conn = psycopg2.connect("dbname=gis")
 cur = conn.cursor()
@@ -222,10 +223,18 @@ def extract_way_details(minlat, maxlat, minlon, maxlon, increment):
 
 
 if __name__ == '__main__':
-    increment = 1.0
-    top, bottom = 89, -89
-    left, right = -179, 179
+    parser = argparse.ArgumentParser(description='Process some integers.')
+    parser.add_argument('-i', '--inc', default=1.0, type=float)
+    parser.add_argument('-t', '--top', default=89, type=float)
+    parser.add_argument('-l', '--left', default=-179, type=float)
+    parser.add_argument('-b', '--bottom', default=-89, type=float)
+    parser.add_argument('-r', '--right', default=179, type=float)
+
+    args = parser.parse_args()
+
+    increment = args.inc
+    top, bottom = args.top, args.bottom
+    left, right = args.left, args.right
     minlat, maxlat = left, right
     minlon, maxlon = bottom, top
     #import_data(filename="../planet-130206-highways.osm.pbf")
-    generate_data(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment)
