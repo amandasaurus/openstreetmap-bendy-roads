@@ -4,7 +4,7 @@ from __future__ import division
 import sys, subprocess, itertools, os, os.path, shutil, json, math
 
 import psycopg2
-import argparse
+import argparse, operator
 
 conn = psycopg2.connect("dbname=gis")
 cur = conn.cursor()
@@ -75,36 +75,79 @@ def stddev(rows):
             ( ( (num_nonzero_weights + 1) / num_nonzero_weights ) * sum(length for highway, ratio, length in rows) )
     )
 
+def properties(rows):
+    results = {
+        # weighted (by road distance) average of the ratio
+        'average': None,
+
+        ## How many metres of the roads have a ratio ≥ 1.2
+        #'m_above_1_2': None,
+
+        ## How many metres of the roads have a ratio ≥ 1.5
+        #'m_above_1_5': None,
+
+        ## What percentage of the road metres have a ratio ≥ 1.2
+        #'percent_above_1_2': None,
+
+        ## What percentage of the road metres have a ratio ≥ 1.5
+        #'percent_above_1_5': None,
+
+        ## catches dead straight and almost straight roads
+        #'percent_below_1_001': None,
+        #'percent_below_1_2': None,
+        #'percent_below_1_5': None,
+
+        # weighted standard deviation
+        'stddev': None,
+    }
+    total_length = 0
+    total_weighted_length = 0
+    ratio_comparers = {
+        'total_above_1_2': lambda ratio: ratio >= 1.2,
+        'total_above_1_5': lambda ratio: ratio >= 1.5,
+        'total_below_1_001': lambda ratio: ratio <= 1.001,
+        'total_below_1_2': lambda ratio: ratio <= 1.2,
+        'total_below_1_5': lambda ratio: ratio <= 1.5,
+    }
+
+    ratio_comparers_working = {x:0 for x in ratio_comparers}
+
+    results.update(ratio_comparers_working)
+    num_rows = 0
+
+    for row in rows:
+        num_rows += 1
+        highway, ratio, length = row
+        total_length += length
+        total_weighted_length += length*ratio
+        for ratio_cmp_name, ratio_cmp_func in ratio_comparers.items():
+            if ratio_cmp_func(ratio):
+                ratio_comparers_working[ratio_cmp_name] += length
+
+
+    if num_rows > 0:
+        results['average'] = total_weighted_length / total_length
+        results.update({key.replace("total_", "percent_"): ratio_comparers_working[key]/total_length for key in ratio_comparers_working})
+
+    results.update(ratio_comparers_working)
+
+
+    mean_ratio = results['average']
+    num_nonzero_weights = num_rows
+    #num_nonzero_weights = sum(1 for highway, ratio, length in rows if length > 0)
+    if num_rows > 0:
+        stdev = math.sqrt(
+            sum(length*((ratio - mean_ratio)**2) for highway, ratio, length in rows) / 
+                ( ( (num_nonzero_weights + 1) / num_nonzero_weights ) * total_length )
+        )
+
+        results['stddev'] = stddev
+
+
 
 def generate_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="output."):
     # initialize the geojson object
     geojson = {'type': 'FeatureCollection', 'features': [] }
-
-    # For each box these are the properties we want to store for it
-    property_funcs = {
-        # weighted (by road distance) average of the ratio
-        'average': lambda rows: average(rows),
-
-        # How many metres of the roads have a ratio ≥ 1.2
-        'm_above_1_2': lambda rows: m_above_X(rows, 1.2),
-
-        # How many metres of the roads have a ratio ≥ 1.5
-        'm_above_1_5': lambda rows: m_above_X(rows, 1.5),
-
-        # What percentage of the road metres have a ratio ≥ 1.2
-        'percent_above_1_2': lambda rows: percent_above_X(rows, 1.2),
-
-        # What percentage of the road metres have a ratio ≥ 1.5
-        'percent_above_1_5': lambda rows: percent_above_X(rows, 1.5),
-
-        # catches dead straight and almost straight roads
-        'percent_below_1_001': lambda rows: percent_below_X(rows, 1.001),
-        'percent_below_1_2': lambda rows: percent_below_X(rows, 1.2),
-        'percent_below_1_5': lambda rows: percent_below_X(rows, 1.5),
-
-        # weighted standard deviation
-        'stddev': lambda rows: stddev(rows),
-    }
 
     # This stores the values of the properties for each box. (i.e. a list of
     # dicts). This is to make iterating over the results easier, rather than
@@ -131,9 +174,9 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outp
 
                 rows = cur.fetchall()
                 if len(rows) > 0:
-                    properties = {k: v(rows) for k, v in property_funcs.items()}
+                    these_properties = properties(rows)
                     geojson_feature = {
-                        'properties': properties,
+                        'properties': these_properties,
                         'type': 'Feature',
                         "geometry": {
                             "type": "Polygon",
@@ -147,11 +190,11 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outp
                         }
                     }
                     geojson['features'].append(geojson_feature)
-                    all_property_results.append(properties)
+                    all_property_results.append(these_properties)
 
     finally:
 
-        print "\nSaving to %s.geojson.js" % output_prefix
+        print "\nSaving to %sgeojson.js" % output_prefix
 
         with open(output_prefix+"geojson.js", 'w') as output_fp:
 
@@ -161,7 +204,8 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outp
 
         print "\nCalculating statistics"
         stats = {}
-        for property_name in property_funcs.keys():
+        # Make an empty call to properties with a dud values to get the keys
+        for property_name in properties([]).keys():
             values = [x[property_name] for x in all_property_results]
             values.sort()
             if len(values) == 0:
