@@ -143,6 +143,8 @@ def properties(rows):
 
         results['stddev'] = stddev
 
+    return results
+
 
 
 def generate_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="output."):
