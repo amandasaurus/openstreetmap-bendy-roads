@@ -136,7 +136,7 @@ def properties(rows):
     num_nonzero_weights = num_rows
     #num_nonzero_weights = sum(1 for highway, ratio, length in rows if length > 0)
     if num_rows > 0:
-        stdev = math.sqrt(
+        stddev = math.sqrt(
             sum(length*((ratio - mean_ratio)**2) for highway, ratio, length in rows) / 
                 ( ( (num_nonzero_weights + 1) / num_nonzero_weights ) * total_length )
         )
