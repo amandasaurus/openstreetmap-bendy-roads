@@ -278,8 +278,6 @@ def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bend
     finally:
 
         conn2.commit()
-        cursor.close()
-        conn2.close()
 
         print "\nCalculating statistics"
         stats = {}
@@ -303,6 +301,15 @@ def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bend
             }
         with open(table_name+".stats.json", 'w') as output_fp:
             json.dump(stats, output_fp, indent=1)
+
+        print "Creating indexes and optimizing..."
+        for property_name in property_names:
+            cursor.execute("CREATE INDEX {0}__{1} on {0} ({1})".format(table_name, property_name))
+        cursor.execute("ANALYZE {0}".format(table_name))
+
+        cursor.close()
+        conn2.close()
+
 
 
 def extract_way_details(minlat, maxlat, minlon, maxlon, increment):
