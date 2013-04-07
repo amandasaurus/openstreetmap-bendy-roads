@@ -344,6 +344,8 @@ if __name__ == '__main__':
     parser.add_argument('-b', '--bottom', default=-89, type=float)
     parser.add_argument('-r', '--right', default=179, type=float)
     parser.add_argument('-o', '--output', default="output.", type=str)
+    parser.add_argument('--type', default="postgres", choices=['postgres', 'geojson'])
+    parser.add_argument('--reimport', default=False, action='store_true')
 
     args = parser.parse_args()
 
@@ -352,5 +354,11 @@ if __name__ == '__main__':
     left, right = args.left, args.right
     minlat, maxlat = left, right
     minlon, maxlon = bottom, top
-    #import_data(filename="../planet-130206-highways.osm.pbf")
-    generate_data(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment, output_prefix=args.output)
+
+    if args.reimport
+        import_data(filename="../planet-130206-highways.osm.pbf")
+
+    if args.type == 'postgres':
+        save_to_postgres(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment, table_name="bendy_roads_"+args.output)
+    elif args.type == 'geojson':
+        geojson_data(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment, output_prefix=args.output)
