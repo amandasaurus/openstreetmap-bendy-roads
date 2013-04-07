@@ -367,6 +367,8 @@ if __name__ == '__main__':
         import_data(filename="../planet-130206-highways.osm.pbf")
 
     if args.type == 'postgres':
+        print "Saving to postgres table "+args.output
         save_to_postgres(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment, table_name="bendy_roads_"+args.output)
     elif args.type == 'geojson':
+        print "Saving to GeoJSON file {0}geojson.js".format(args.output)
         geojson_data(minlat=minlat, maxlat=maxlat, minlon=minlon, maxlon=maxlon, increment=increment, output_prefix=args.output)
