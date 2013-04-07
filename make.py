@@ -98,7 +98,7 @@ def properties(rows):
         #'percent_below_1_5': None,
 
         # weighted standard deviation
-        'stddev': None,
+        #'stddev': None,
     }
     total_length = 0
     total_weighted_length = 0
@@ -138,13 +138,13 @@ def properties(rows):
     mean_ratio = results['average']
     num_nonzero_weights = num_rows
     #num_nonzero_weights = sum(1 for highway, ratio, length in rows if length > 0)
-    if num_rows > 0:
-        stddev = math.sqrt(
-            sum(length*((ratio - mean_ratio)**2) for highway, ratio, length in rows) / 
-                ( ( (num_nonzero_weights + 1) / num_nonzero_weights ) * total_length )
-        )
+    #if num_rows > 0:
+    #    stddev = math.sqrt(
+    #        sum(length*((ratio - mean_ratio)**2) for highway, ratio, length in rows) / 
+    #            ( ( (num_nonzero_weights + 1) / num_nonzero_weights ) * total_length )
+    #    )
 
-        results['stddev'] = stddev
+    #    results['stddev'] = stddev
 
     return results
 
