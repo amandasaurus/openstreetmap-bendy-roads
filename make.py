@@ -358,7 +358,7 @@ if __name__ == '__main__':
     minlat, maxlat = left, right
     minlon, maxlon = bottom, top
 
-    if args.reimport
+    if args.reimport:
         import_data(filename="../planet-130206-highways.osm.pbf")
 
     if args.type == 'postgres':
