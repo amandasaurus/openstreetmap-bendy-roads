@@ -149,8 +149,45 @@ def properties(rows):
     return results
 
 
+def generate_data(minlat, maxlat, minlon, maxlon, increment):
+    for lat in frange(minlat, maxlat, increment):
+        percent = ((lat - minlat) / (maxlat - minlat) ) * 100
+        sys.stdout.write("\n[%3d%%] %s " % (percent, lat))
 
-def generate_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="output."):
+        for lon in frange(minlon, maxlon, increment):
+            sys.stdout.write(".")
+
+            this_minlat, this_minlon = lat, lon
+            this_maxlat, this_maxlon = lat + increment, lon + increment
+
+            # postgis bbox of this box
+            bbox = "ST_Transform(ST_MakeEnvelope({0}, {1}, {2}, {3}, 4326), 900913)".format(this_minlat, this_minlon, this_maxlat, this_maxlon)
+
+            cur.execute(
+                "select highway, case when straightline=0 then 0.0 else length::float/straightline::float end as ratio, length from ( select osm_id, highway, st_length(geog) as length, st_distance(geography(st_transform(st_startpoint(way), 4326)), geography(st_transform(st_endpoint(way), 4326))) as straightline from planet_osm_line where way && {bbox} ) as inter;".format(bbox=bbox)
+            )
+
+            rows = cur.fetchall()
+            if len(rows) > 0:
+                these_properties = properties(rows)
+
+                yield {
+                    'properties': these_properties,
+                    "coordinates": [[
+                        [this_minlat, this_minlon],
+                        [this_maxlat, this_minlon],
+                        [this_maxlat, this_maxlon],
+                        [this_minlat, this_maxlon],
+                        [this_minlat, this_minlon],
+                    ]],
+                    'bbox': bbox,
+                    'minlat': this_minlat,
+                    'minlon': this_minlon,
+                    'maxlat': this_maxlat,
+                    'maxlon': this_maxlon,
+                }
+
+def geojson_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="output.", ):
     # initialize the geojson object
     geojson = {'type': 'FeatureCollection', 'features': [] }
 
@@ -160,42 +197,17 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outp
     all_property_results = []
 
     try:
-        for lat in frange(minlat, maxlat, increment):
-            percent = ((lat - minlat) / (maxlat - minlat) ) * 100
-            sys.stdout.write("\n[%3d%%] %s " % (percent, lat))
-
-            for lon in frange(minlon, maxlon, increment):
-                sys.stdout.write(".")
-
-                this_minlat, this_minlon = lat, lon
-                this_maxlat, this_maxlon = lat + increment, lon + increment
-
-                # postgis bbox of this box
-                bbox = "ST_Transform(ST_MakeEnvelope({0}, {1}, {2}, {3}, 4326), 900913)".format(this_minlat, this_minlon, this_maxlat, this_maxlon)
-
-                cur.execute(
-                    "select highway, case when straightline=0 then 0.0 else length::float/straightline::float end as ratio, length from ( select osm_id, highway, st_length(geog) as length, st_distance(geography(st_transform(st_startpoint(way), 4326)), geography(st_transform(st_endpoint(way), 4326))) as straightline from planet_osm_line where way && {bbox} ) as inter;".format(bbox=bbox)
-                )
-
-                rows = cur.fetchall()
-                if len(rows) > 0:
-                    these_properties = properties(rows)
-                    geojson_feature = {
-                        'properties': these_properties,
-                        'type': 'Feature',
-                        "geometry": {
-                            "type": "Polygon",
-                            "coordinates": [[
-                                [this_minlat, this_minlon],
-                                [this_maxlat, this_minlon],
-                                [this_maxlat, this_maxlon],
-                                [this_minlat, this_maxlon],
-                                [this_minlat, this_minlon],
-                            ]]
-                        }
-                    }
-                    geojson['features'].append(geojson_feature)
-                    all_property_results.append(these_properties)
+        for box_details in generate_data(minlat=minlat, minlon=minlon, maxlon=maxlon, maxlat=maxlat, increment=increment):
+            geojson_feature = {
+                'properties': box_details['properties'],
+                'type': 'Feature',
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": box_details['coordinates'],
+                }
+            }
+            geojson['features'].append(geojson_feature)
+            all_property_results.append(box_details['properties'])
 
     finally:
 
