@@ -243,6 +243,59 @@ def geojson_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outpu
             json.dump(stats, output_fp, indent=1)
 
 
+def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bendy_roads"):
+    property_names = properties([]).keys()
+    property_names.sort()
+    
+    conn2 = psycopg2.connect("dbname=gis")
+    cursor = conn2.cursor()
+
+    cursor.execute("CREATE TABLE {0} (id serial primary key, ".format(table_name)+", ".join("{0} float".format(pr) for pr in property_names)+");")
+    cursor.execute("SELECT AddGeometryColumn('{0}', 'bbox', 900913, 'POLYGON', 2);".format(table_name))
+    conn2.commit()
+
+    # This stores the values of the properties for each box. (i.e. a list of
+    # dicts). This is to make iterating over the results easier, rather than
+    # having to iterate over the geojson object
+    all_property_results = []
+
+
+    try:
+        for box_details in generate_data(minlat=minlat, minlon=minlon, maxlon=maxlon, maxlat=maxlat, increment=increment):
+            sql_to_insert = ("INSERT INTO {0} (bbox, {1}) VALUES ("+box_details['bbox']+", {2});").format(table_name, ", ".join(property_names), ", ".join("%("+x+")s" for x in property_names))
+
+            cursor.execute(sql_to_insert, box_details['properties'])
+            all_property_results.append(box_details['properties'])
+
+    finally:
+
+        conn2.commit()
+        cursor.close()
+        conn2.close()
+
+        print "\nCalculating statistics"
+        stats = {}
+        # Make an empty call to properties with a dud values to get the keys
+        for property_name in property_names:
+            values = [x[property_name] for x in all_property_results]
+            values.sort()
+            if len(values) == 0:
+                continue
+            mean = sum(values) / len(values)
+            stats[property_name] = {
+                'avg': mean,
+                'min': values[0],
+                'max': values[-1],
+                'median': values[int(len(values)/2)],
+                'p10': values[int(len(values)*0.1)],
+                'p90': values[int(len(values)*0.9)],
+                'p25': values[int(len(values)*0.25)],
+                'p75': values[int(len(values)*0.75)],
+                'stddev': math.sqrt(sum((i - mean) ** 2 for i in values) / len(values)),
+            }
+        with open(table_name+".stats.json", 'w') as output_fp:
+            json.dump(stats, output_fp, indent=1)
+
 
 def extract_way_details(minlat, maxlat, minlon, maxlon, increment):
     results = {}
