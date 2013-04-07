@@ -105,7 +105,10 @@ def properties(rows):
     ratio_comparers = {
         'total_above_1_2': lambda ratio: ratio >= 1.2,
         'total_above_1_5': lambda ratio: ratio >= 1.5,
+
         'total_below_1_001': lambda ratio: ratio <= 1.001,
+        'total_below_1_01': lambda ratio: ratio <= 1.01,
+        'total_below_1_1': lambda ratio: ratio <= 1.1,
         'total_below_1_2': lambda ratio: ratio <= 1.2,
         'total_below_1_5': lambda ratio: ratio <= 1.5,
     }
