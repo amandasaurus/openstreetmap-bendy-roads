@@ -304,9 +304,10 @@ def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bend
 
         print "Creating indexes and optimizing..."
         for property_name in property_names:
-            cursor.execute("CREATE INDEX {0}__{1} on {0} ({1})".format(table_name, property_name))
-        cursor.execute("ANALYZE {0}".format(table_name))
+            cursor.execute("CREATE INDEX {table}__{col} on {table} ({col});".format(table=table_name, col=property_name))
+        cursor.execute("ANALYZE {0};".format(table_name))
 
+        conn2.commit()
         cursor.close()
         conn2.close()
 
