@@ -128,6 +128,9 @@ def properties(rows):
     if num_rows > 0:
         results['average'] = total_weighted_length / total_length
         results.update({key.replace("total_", "percent_"): ratio_comparers_working[key]/total_length for key in ratio_comparers_working})
+    else:
+        results.update({key.replace("total_", "percent_"): 0 for key in ratio_comparers_working})
+
 
     results.update(ratio_comparers_working)
 
