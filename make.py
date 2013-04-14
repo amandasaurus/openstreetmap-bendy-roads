@@ -91,6 +91,9 @@ def properties(rows):
         'total_below_1_01': lambda ratio: ratio <= 1.01,
         'total_below_1_05': lambda ratio: ratio <= 1.05,
         'total_below_1_1': lambda ratio: ratio <= 1.1,
+        'total_below_1_125': lambda ratio: ratio <= 1.125,
+        'total_below_1_15': lambda ratio: ratio <= 1.15,
+        'total_below_1_175': lambda ratio: ratio <= 1.175,
         'total_below_1_2': lambda ratio: ratio <= 1.2,
         'total_below_1_5': lambda ratio: ratio <= 1.5,
 
@@ -98,6 +101,9 @@ def properties(rows):
         'total_above_1_01': lambda ratio: ratio >= 1.01,
         'total_above_1_05': lambda ratio: ratio >= 1.05,
         'total_above_1_1': lambda ratio: ratio >= 1.1,
+        'total_above_1_125': lambda ratio: ratio >= 1.125,
+        'total_above_1_15': lambda ratio: ratio >= 1.15,
+        'total_above_1_175': lambda ratio: ratio <= 1.175,
         'total_above_1_2': lambda ratio: ratio >= 1.2,
         'total_above_1_5': lambda ratio: ratio >= 1.5,
     }
