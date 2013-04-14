@@ -6,8 +6,6 @@ import sys, subprocess, itertools, os, os.path, shutil, json, math
 import psycopg2
 import argparse, operator
 
-conn = psycopg2.connect("dbname=gis")
-cur = conn.cursor()
 
 
 def frange(start, stop, step=None):
@@ -22,6 +20,10 @@ def frange(start, stop, step=None):
 
 def import_data(filename):
     subprocess.call(['osm2pgsql', '--slim', '-S', 'osm.style', filename])
+
+    conn = psycopg2.connect("dbname=gis")
+    cur = conn.cursor()
+
     cur.execute(
             """
             delete from planet_osm_line where
@@ -129,6 +131,9 @@ def properties(rows):
 
 
 def generate_data(minlat, maxlat, minlon, maxlon, increment):
+    conn = psycopg2.connect("dbname=gis")
+    cur = conn.cursor()
+
     for lat in frange(minlat, maxlat, increment):
         percent = ((lat - minlat) / (maxlat - minlat) ) * 100
         sys.stdout.write("\n[%3d%%] %s " % (percent, lat))
@@ -165,6 +170,10 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
                     'maxlat': this_maxlat,
                     'maxlon': this_maxlon,
                 }
+
+    conn.commit()
+    cur.close()
+    conn.close()
 
 def generate_statistics(all_property_results, output_filename):
     stats = {}
@@ -268,7 +277,6 @@ def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bend
         conn2.commit()
         cursor.close()
         conn2.close()
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process some integers.')
