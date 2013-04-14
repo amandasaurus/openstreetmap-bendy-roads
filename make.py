@@ -79,29 +79,13 @@ def properties(rows):
     results = {
         # weighted (by road distance) average of the ratio
         'average': None,
-
-        ## How many metres of the roads have a ratio ≥ 1.2
-        #'m_above_1_2': None,
-
-        ## How many metres of the roads have a ratio ≥ 1.5
-        #'m_above_1_5': None,
-
-        ## What percentage of the road metres have a ratio ≥ 1.2
-        #'percent_above_1_2': None,
-
-        ## What percentage of the road metres have a ratio ≥ 1.5
-        #'percent_above_1_5': None,
-
-        ## catches dead straight and almost straight roads
-        #'percent_below_1_001': None,
-        #'percent_below_1_2': None,
-        #'percent_below_1_5': None,
-
-        # weighted standard deviation
-        #'stddev': None,
     }
+
     total_length = 0
     total_weighted_length = 0
+
+    # total_below_X is the total length (in m) of all roads whose ratio is ≤ X.
+    # total_above_X is where ratio is ≥ X
     ratio_comparers = {
         'total_below_1_001': lambda ratio: ratio <= 1.001,
         'total_below_1_01': lambda ratio: ratio <= 1.01,
