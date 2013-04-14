@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<translations>
+ 
+  <translation>
+    <name>Remove all non-highway tags</name>
+    <match type="way">
+        <tag k="highway" />
+    </match>
+    <output>
+      <copy-matched/>
+    </output>
+  </translation>
+ 
+</translations>
