@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Bendy roads</title>
+	<meta charset="utf-8" />
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="stylesheet" href="http://leafletjs.com/dist/leaflet.css" />
+</head>
+<body>
+	<script src="http://leafletjs.com/dist/leaflet.js"></script>
+    <script src="./jquery.min.js"></script>
+	<div id="map" style="width: 800px; height: 600px"></div>
+
+	<script>
+        $(document).ready(function() {
+            map = L.map('map').setView([49.4, 13.6], 4)
+
+            // add an OpenStreetMap tile layer
+            L.tileLayer('./bendy/{z}/{x}/{y}.png', {
+                maxZoom: 5,
+            }).addTo(map);
+        });
+
+	</script>
+</body>
+</html>
