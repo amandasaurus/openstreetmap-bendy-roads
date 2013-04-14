@@ -166,6 +166,29 @@ def generate_data(minlat, maxlat, minlon, maxlon, increment):
                     'maxlon': this_maxlon,
                 }
 
+def generate_statistics(all_property_results, output_filename):
+    stats = {}
+    # Make an empty call to properties with a dud values to get the keys
+    for property_name in properties([]).keys():
+        values = [x[property_name] for x in all_property_results]
+        values.sort()
+        if len(values) == 0:
+            continue
+        mean = sum(values) / len(values)
+        stats[property_name] = {
+            'avg': mean,
+            'min': values[0],
+            'max': values[-1],
+            'median': values[int(len(values)/2)],
+            'p10': values[int(len(values)*0.1)],
+            'p90': values[int(len(values)*0.9)],
+            'p25': values[int(len(values)*0.25)],
+            'p75': values[int(len(values)*0.75)],
+            'stddev': math.sqrt(sum((i - mean) ** 2 for i in values) / len(values)),
+        }
+    with open(output_filename, 'w') as output_fp:
+        json.dump(stats, output_fp, indent=1)
+
 def geojson_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="output.", ):
     # initialize the geojson object
     geojson = {'type': 'FeatureCollection', 'features': [] }
@@ -199,27 +222,7 @@ def geojson_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outpu
             output_fp.write(';')
 
         print "\nCalculating statistics"
-        stats = {}
-        # Make an empty call to properties with a dud values to get the keys
-        for property_name in properties([]).keys():
-            values = [x[property_name] for x in all_property_results]
-            values.sort()
-            if len(values) == 0:
-                continue
-            mean = sum(values) / len(values)
-            stats[property_name] = {
-                'avg': mean,
-                'min': values[0],
-                'max': values[-1],
-                'median': values[int(len(values)/2)],
-                'p10': values[int(len(values)*0.1)],
-                'p90': values[int(len(values)*0.9)],
-                'p25': values[int(len(values)*0.25)],
-                'p75': values[int(len(values)*0.75)],
-                'stddev': math.sqrt(sum((i - mean) ** 2 for i in values) / len(values)),
-            }
-        with open(output_prefix+"stats.geojson.js", 'w') as output_fp:
-            json.dump(stats, output_fp, indent=1)
+        generate_statistics(all_property_results, output_prefix+"stats.geojson.js")
 
 
 def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bendy_roads"):
@@ -251,27 +254,7 @@ def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bend
         conn2.commit()
 
         print "\nCalculating statistics"
-        stats = {}
-        # Make an empty call to properties with a dud values to get the keys
-        for property_name in property_names:
-            values = [x[property_name] for x in all_property_results]
-            values.sort()
-            if len(values) == 0:
-                continue
-            mean = sum(values) / len(values)
-            stats[property_name] = {
-                'avg': mean,
-                'min': values[0],
-                'max': values[-1],
-                'median': values[int(len(values)/2)],
-                'p10': values[int(len(values)*0.1)],
-                'p90': values[int(len(values)*0.9)],
-                'p25': values[int(len(values)*0.25)],
-                'p75': values[int(len(values)*0.75)],
-                'stddev': math.sqrt(sum((i - mean) ** 2 for i in values) / len(values)),
-            }
-        with open(table_name+".stats.json", 'w') as output_fp:
-            json.dump(stats, output_fp, indent=1)
+        generate_statistics(all_property_results, table_name+".stats.json")
 
         print "Creating indexes and optimizing..."
         for property_name in property_names:
