@@ -11,6 +11,7 @@ cur = conn.cursor()
 
 
 def frange(start, stop, step=None):
+    """A float-capable 'range' replacement"""
     step = step or 1.0
     stop = stop or start
     cur = start
@@ -280,44 +281,6 @@ def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bend
         conn2.commit()
         cursor.close()
         conn2.close()
-
-
-
-def extract_way_details(minlat, maxlat, minlon, maxlon, increment):
-    results = {}
-    try:
-        for lat in frange(minlat, maxlat, increment):
-            percent = ((lat - minlat) / (maxlat - minlat) ) * 100
-            sys.stdout.write("\n[%3d%%] %s " % (percent, lat))
-            for lon in frange(minlon, maxlon, increment):
-                sys.stdout.write(".")
-                this_minlat, this_minlon = lat, lon
-                this_maxlat, this_maxlon = lat + increment, lon + increment
-
-                bbox = "ST_Transform(ST_MakeEnvelope({0}, {1}, {2}, {3}, 4326), 900913)".format(this_minlat, this_minlon, this_maxlat, this_maxlon)
-
-                cur.execute(
-                    "select case when straightline=0 then 0.0 else length::float/straightline::float end as ratio, length from ( select osm_id, highway, st_length(geog) as length, st_distance(geography(st_transform(st_startpoint(way), 4326)), geography(st_transform(st_endpoint(way), 4326))) as straightline from planet_osm_line where way && {bbox} ) as inter;".format(bbox=bbox)
-                )
-
-                rows = cur.fetchall()
-                if len(rows) > 0:
-                    if lat not in results:
-                        results[lat] = {}
-                    results[lat][lon] = {
-                        'minlat': this_minlat,
-                        'maxlat': this_maxlat,
-                        'minlat': this_minlat,
-                        'minlon': this_minlon,
-                        'rows': rows,
-                    }
-
-    finally:
-
-        print "\nSaving to way_details.json"
-
-        with open("way_details.json", 'w') as output_fp:
-            json.dump(results, output_fp, indent=1)
 
 
 
