@@ -48,34 +48,13 @@ def import_data(filename):
     conn.commit()
 
 
-
-def average(rows):
-    """Returns the weighted average of the ratio of each of the roads in ``rows``, the weight is the length of the road"""
-    return sum(ratio*length for highway, ratio, length in rows)/sum(length for highway, ratio, length in rows)
-
-def m_above_X(rows, x):
-    """Returns the total length in metres of all the roads whose ratio is ≥ x"""
-    return sum(length for highway, ratio, length in rows if ratio >= x)
-
-def percent_above_X(rows, x):
-    """Returns what percentage (technically a number between 0.0 and 1.0) of all the road distance whose ratio is greater than x. Basically a weighted percentage of all the roads whose ratio is ≥ x"""
-    return sum(length for highway, ratio, length in rows if ratio >= x)/sum(length for highway, ratio, length in rows)
-
-def percent_below_X(rows, x):
-    """Returns what percentage (technically a number between 0.0 and 1.0) of all the road distance whose ratio is less than x. Basically a weighted percentage of all the roads whose ratio is ≤ x"""
-    return sum(length for highway, ratio, length in rows if ratio <= x)/sum(length for highway, ratio, length in rows)
-
-def stddev(rows):
-    """Weighted (by length) stddev of ratios of the roads"""
-    # formula from http://stats.stackexchange.com/a/6536/7551
-    mean_ratio = sum(ratio*length for highway, ratio, length in rows)/sum(length for highway, ratio, length in rows)
-    num_nonzero_weights = sum(1 for highway, ratio, length in rows if length > 0)
-    return math.sqrt(
-        sum(length*((ratio - mean_ratio)**2) for highway, ratio, length in rows) / 
-            ( ( (num_nonzero_weights + 1) / num_nonzero_weights ) * sum(length for highway, ratio, length in rows) )
-    )
-
 def properties(rows):
+    """
+    Given a list of rows (e.g. from the database), return a dict with a set of
+    properties about those rows that we want to measure.
+
+    Call properties([]) to see what are the values we look at.
+    """
     results = {
         # weighted (by road distance) average of the ratio
         'average': None,
@@ -108,16 +87,23 @@ def properties(rows):
         'total_above_1_5': lambda ratio: ratio >= 1.5,
     }
 
+    # set our 'working tally' all to 0 since we haven't calculated anything yet
     ratio_comparers_working = {x:0 for x in ratio_comparers}
 
+    # save these to the results
     results.update(ratio_comparers_working)
-    num_rows = 0
 
+    # Step through all the rows counting things up
+    num_rows = 0
     for row in rows:
         num_rows += 1
         highway, ratio, length = row
+
+        # We always calculate these
         total_length += length
         total_weighted_length += length*ratio
+
+        # For each of the ratio functions, if this row matches, then record that.
         for ratio_cmp_name, ratio_cmp_func in ratio_comparers.items():
             if ratio_cmp_func(ratio):
                 ratio_comparers_working[ratio_cmp_name] += length
@@ -125,24 +111,18 @@ def properties(rows):
 
     if num_rows > 0:
         results['average'] = total_weighted_length / total_length
+
+        # For each total_*, we store a corresponding percent_* property.
+        # percent_above_1_5 = percent of all the way-metres that have ratio ≥
+        # 1.5 etc.
         results.update({key.replace("total_", "percent_"): ratio_comparers_working[key]/total_length for key in ratio_comparers_working})
     else:
+        # If there are no rows, we need to have empty keys for the percent_* so
+        # that if you call properties([]), you'll get the same keys out
         results.update({key.replace("total_", "percent_"): 0 for key in ratio_comparers_working})
 
 
     results.update(ratio_comparers_working)
-
-
-    mean_ratio = results['average']
-    num_nonzero_weights = num_rows
-    #num_nonzero_weights = sum(1 for highway, ratio, length in rows if length > 0)
-    #if num_rows > 0:
-    #    stddev = math.sqrt(
-    #        sum(length*((ratio - mean_ratio)**2) for highway, ratio, length in rows) / 
-    #            ( ( (num_nonzero_weights + 1) / num_nonzero_weights ) * total_length )
-    #    )
-
-    #    results['stddev'] = stddev
 
     return results
 
