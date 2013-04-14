@@ -294,6 +294,8 @@ if __name__ == '__main__':
     increment = args.inc
     top, bottom = args.top, args.bottom
     left, right = args.left, args.right
+    
+    # I always get these confused
     minlat, maxlat = left, right
     minlon, maxlon = bottom, top
 
