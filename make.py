@@ -226,19 +226,21 @@ def geojson_data(minlat, maxlat, minlon, maxlon, increment, output_prefix="outpu
 
 
 def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bendy_roads"):
+
+    # Make an empty call to properties with a dud values to get the keys
     property_names = properties([]).keys()
     property_names.sort()
     
     conn2 = psycopg2.connect("dbname=gis")
     cursor = conn2.cursor()
 
+    # Create the table
     cursor.execute("CREATE TABLE {0} (id serial primary key, ".format(table_name)+", ".join("{0} float".format(pr) for pr in property_names)+");")
     cursor.execute("SELECT AddGeometryColumn('{0}', 'bbox', 900913, 'POLYGON', 2);".format(table_name))
     conn2.commit()
 
     # This stores the values of the properties for each box. (i.e. a list of
-    # dicts). This is to make iterating over the results easier, rather than
-    # having to iterate over the geojson object
+    # dicts). This is to make iterating over the results easier.
     all_property_results = []
 
 
@@ -256,6 +258,8 @@ def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bend
         print "\nCalculating statistics"
         generate_statistics(all_property_results, table_name+".stats.json")
 
+        # Create the indexes on the property columns. Doing this after all the data has been created, not sure if that's faster or not.
+        # Would like to have it work
         print "Creating indexes and optimizing..."
         for property_name in property_names:
             cursor.execute("CREATE INDEX {table}__{col} on {table} ({col});".format(table=table_name, col=property_name))
@@ -264,8 +268,6 @@ def save_to_postgres(minlat, maxlat, minlon, maxlon, increment, table_name="bend
         conn2.commit()
         cursor.close()
         conn2.close()
-
-
 
 
 if __name__ == '__main__':
